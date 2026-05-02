@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SIGPROD – Panel Usuario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --rojo:        #C0392B;
+            --rojo-hover:  #E74C3C;
+            --rojo-oscuro: #96281B;
+            --rojo-suave:  #fdecea;
+            --blanco:      #FFFFFF;
+            --fondo:       #f7f3f3;
+            --borde:       #e8e0e0;
+            --texto:       #1a1a1a;
+            --texto-sub:   #888888;
+            --verde:       #27ae60;
+            --naranja:     #e67e22;
+            --azul:        #1a6fa8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Gabarito', sans-serif;
+            background: radial-gradient(ellipse at top left, rgba(192,57,43,0.08) 0%, transparent 55%),
+                        radial-gradient(ellipse at bottom right, rgba(192,57,43,0.06) 0%, transparent 55%),
+                        #f7f3f3;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px; background: var(--rojo); min-height: 100vh;
+            position: fixed; top: 0; left: 0; bottom: 0;
+            display: flex; flex-direction: column; z-index: 10;
+        }
+        .sidebar-logo { padding: 30px 24px 22px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+        .sidebar-sigla { font-size: 32px; font-weight: 900; color: var(--blanco); letter-spacing: -1.5px; }
+        .sidebar-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 3px; }
+        .sidebar-perfil { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 12px; }
+        .perfil-avatar { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--blanco); }
+        .perfil-nombre { font-size: 14px; font-weight: 700; color: var(--blanco); }
+        .perfil-rol { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+        .sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+        .nav-seccion { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); padding: 14px 24px 6px; }
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 24px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.70); text-decoration: none; border-left: 3px solid transparent; cursor: pointer; width: 100%; text-align: left; background: none; border-right: none; border-top: none; border-bottom: none; }
+        .nav-link:hover { background: rgba(255,255,255,0.10); color: var(--blanco); border-left-color: rgba(255,255,255,0.5); }
+        .nav-link.activo { background: rgba(255,255,255,0.15); color: var(--blanco); border-left-color: var(--blanco); font-weight: 600; }
+        .nav-icono { font-size: 15px; width: 20px; text-align: center; }
+        .sidebar-footer { padding: 18px 24px; border-top: 1px solid rgba(255,255,255,0.15); }
+        .btn-logout { display: block; width: 100%; padding: 10px; background: rgba(255,255,255,0.12); color: var(--blanco); border: 1px solid rgba(255,255,255,0.22); border-radius: 10px; text-align: center; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        /* Main */
+        .main { margin-left: 260px; flex: 1; padding: 32px 36px; }
+        .vista { display: none; }
+        .vista.activa { display: block; }
+
+        /* Headers */
+        .page-header { margin-bottom: 28px; }
+        .page-titulo { font-size: 26px; font-weight: 800; color: var(--texto); }
+        .page-subtitulo { font-size: 14px; color: var(--texto-sub); margin-top: 4px; }
+
+        /* Banner */
+        .bienvenida { background: var(--rojo); border-radius: 16px; padding: 28px 32px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; }
+        .bienvenida::before { content:''; position:absolute; right:-50px; top:-50px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.07); }
+        .bienvenida-titulo { font-size:22px; font-weight:800; color:var(--blanco); }
+        .bienvenida-sub { font-size:13px; color:rgba(255,255,255,0.65); margin-top:4px; }
+        .bienvenida-badge { background:rgba(255,255,255,0.18); color:var(--blanco); font-size:12px; font-weight:700; padding:8px 18px; border-radius:20px; border:1px solid rgba(255,255,255,0.25); }
+
+        /* Stats */
+        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+        .stat-card { background:var(--blanco); border:1px solid var(--borde); border-radius:14px; padding:20px 22px; border-top:4px solid var(--rojo); }
+        .stat-numero { font-size:34px; font-weight:900; color:var(--rojo); line-height:1; }
+        .stat-label { font-size:12px; color:var(--texto-sub); margin-top:6px; font-weight:500; }
+
+        /* Módulos */
+        .modulos-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+        .modulo-card { background:var(--blanco); border:1px solid var(--borde); border-radius:14px; padding:22px 20px; cursor:pointer; transition:all 0.2s; }
+        .modulo-card:hover { border-color:var(--rojo); box-shadow:0 6px 20px rgba(192,57,43,0.12); transform:translateY(-2px); }
+        .modulo-icono { width:44px; height:44px; background:var(--rojo-suave); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px; }
+        .modulo-nombre { font-size:14px; font-weight:700; color:var(--texto); }
+        .modulo-desc { font-size:12px; color:var(--texto-sub); margin-top:5px; line-height:1.4; }
+        .modulo-rf { display:inline-block; margin-top:12px; font-size:10px; font-weight:700; color:var(--rojo); background:var(--rojo-suave); padding:3px 10px; border-radius:20px; }
+
+        /* Cards */
+        .card { background:var(--blanco); border:1px solid var(--borde); border-radius:14px; overflow:hidden; margin-bottom:20px; }
+        .card-header { padding:16px 20px; border-bottom:1px solid var(--borde); font-size:14px; font-weight:700; color:var(--texto); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        .card-body { padding:20px; }
+
+        /* Formularios */
+        .form-group { margin-bottom:16px; }
+        .form-label { display:block; font-size:12px; font-weight:700; color:var(--texto); margin-bottom:6px; text-transform:uppercase; }
+        .form-control { width:100%; padding:10px 14px; border:1px solid var(--borde); border-radius:10px; font-family:inherit; font-size:13px; outline:none; }
+        .form-control:focus { border-color:var(--rojo); }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+        /* Botones */
+        .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; }
+        .btn-primary { background:var(--rojo); color:var(--blanco); }
+        .btn-primary:hover { background:var(--rojo-hover); }
+        .btn-secondary { background:var(--blanco); color:var(--texto); border:1px solid var(--borde); }
+        .btn-secondary:hover { border-color:var(--rojo); color:var(--rojo); }
+        .btn-success { background:#eafaf1; color:var(--verde); border:1px solid #b2dfdb; }
+        .btn-danger { background:#fdecea; color:var(--rojo); border:1px solid #f5c6c2; }
+        .btn-sm { padding:6px 12px; font-size:12px; }
+        .btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+
+        /* Tablas */
+        .tabla { width:100%; border-collapse:collapse; font-size:13px; }
+        .tabla th { background:#f5f0f0; font-weight:700; padding:10px 14px; text-align:left; border-bottom:2px solid var(--borde); }
+        .tabla td { padding:10px 14px; border-bottom:1px solid var(--borde); }
+        .tabla-wrap { overflow-x:auto; margin-top:14px; }
+
+        /* Tareas */
+        .tarea-item { display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--borde); }
+        .tarea-item:last-child { border-bottom:none; }
+        .tarea-dot { width:9px; height:9px; border-radius:50%; }
+        .dot-rojo { background:var(--rojo); }
+        .dot-verde { background:var(--verde); }
+        .dot-naranja { background:var(--naranja); }
+        .tarea-info { flex:1; }
+        .tarea-titulo { font-size:13px; font-weight:600; color:var(--texto); }
+        .tarea-meta { font-size:11px; color:var(--texto-sub); margin-top:2px; }
+        .tarea-estado { font-size:11px; font-weight:700; padding:4px 12px; border-radius:20px; }
+        .estado-progreso { background:#fff3e0; color:var(--naranja); }
+        .estado-listo { background:#eafaf1; color:var(--verde); }
+
+        /* Resultados API */
+        .api-result { background:#f8f8f8; border:1px solid var(--borde); border-radius:10px; padding:14px; margin-top:14px; font-size:12px; font-family:monospace; max-height:300px; overflow-y:auto; display:none; white-space:pre-wrap; }
+        .api-result.show { display:block; }
+
+        /* Toast */
+        #toast { position:fixed; bottom:28px; right:28px; background:var(--texto); color:var(--blanco); padding:14px 22px; border-radius:12px; font-size:13px; font-weight:600; display:none; z-index:1000; }
+        #toast.show { display:block; animation:slideIn 0.3s ease; }
+        #toast.error { background:var(--rojo); }
+        #toast.exito { background:var(--verde); }
+        @keyframes slideIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+        /* Subsecciones */
+        .subseccion-analista { display:none; }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="sidebar-sigla">SIGPROD</div>
+        <div class="sidebar-sub">TechSoft Solutions</div>
+    </div>
+    <div class="sidebar-perfil">
+        <div class="perfil-avatar" id="avatarLetra">U</div>
+        <div>
+            <div class="perfil-nombre" id="perfilNombre">Usuario</div>
+            <div class="perfil-rol" id="perfilCorreo">user@sigprod.com</div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-seccion">Principal</div>
+        <button class="nav-link activo" onclick="mostrarVista('dashboard', this)"><span class="nav-icono">🏠</span> Dashboard</button>
+        <button class="nav-link" onclick="mostrarVista('mis-tareas', this)"><span class="nav-icono">✅</span> Mis Tareas</button>
+        <button class="nav-link" onclick="mostrarVista('proyectos', this)"><span class="nav-icono">📁</span> Mis Proyectos</button>
+        <button class="nav-link" onclick="mostrarVista('historias', this)"><span class="nav-icono">📖</span> Historias</button>
+        <button class="nav-link" onclick="mostrarVista('sprints', this)"><span class="nav-icono">🔄</span> Sprints</button>
+        <button class="nav-link" onclick="mostrarVista('defectos', this)"><span class="nav-icono">🧪</span> QA / Defectos</button>
+        <button class="nav-link" onclick="mostrarVista('pipelines', this)"><span class="nav-icono">🚀</span> DevOps / CI·CD</button>
+        <div class="nav-seccion">Analista de Negocio</div>
+        <button class="nav-link" onclick="mostrarVista('analista', this)"><span class="nav-icono">📋</span> Analista de Negocio</button>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="/logout" class="btn-logout">Cerrar Sesión</a>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+    <!-- DASHBOARD -->
+    <div id="v-dashboard" class="vista activa">
+        <div class="page-header">
+            <div class="page-titulo">Panel de Usuario</div>
+            <div class="page-subtitulo">Bienvenido al sistema SIGPROD</div>
+        </div>
+        <div class="bienvenida">
+            <div class="bienvenida-texto">
+                <div class="bienvenida-titulo">¡Hola, bienvenido de nuevo!</div>
+                <div class="bienvenida-sub" id="correoBanner">user@sigprod.com</div>
+            </div>
+            <div class="bienvenida-badge" id="rolBanner">USER</div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-numero" id="statTareas">–</div><div class="stat-label">Tareas activas</div></div>
+            <div class="stat-card"><div class="stat-numero" id="statProyectos">–</div><div class="stat-label">Proyectos activos</div></div>
+            <div class="stat-card"><div class="stat-numero" id="statDefectos">–</div><div class="stat-label">Defectos asignados</div></div>
+            <div class="stat-card"><div class="stat-numero" id="statPipelines">–</div><div class="stat-label">Pipelines</div></div>
+        </div>
+        <div class="modulos-grid">
+            <div class="modulo-card" onclick="mostrarVista('proyectos', null)"><div class="modulo-icono">📁</div><div class="modulo-nombre">Proyectos</div><div class="modulo-desc">CRUD de proyectos</div><span class="modulo-rf">RF-PM</span></div>
+            <div class="modulo-card" onclick="mostrarVista('defectos', null)"><div class="modulo-icono">🧪</div><div class="modulo-nombre">QA / Defectos</div><div class="modulo-desc">Reportar y gestionar</div><span class="modulo-rf">RF-QA</span></div>
+            <div class="modulo-card" onclick="mostrarVista('pipelines', null)"><div class="modulo-icono">🚀</div><div class="modulo-nombre">DevOps</div><div class="modulo-desc">CI/CD pipelines</div><span class="modulo-rf">RF-DO</span></div>
+            <div class="modulo-card" onclick="mostrarVista('analista', null)"><div class="modulo-icono">📋</div><div class="modulo-nombre">Analista Negocio</div><div class="modulo-desc">Requisitos, SRS, trazabilidad</div><span class="modulo-rf">RF-AN</span></div>
+        </div>
+    </div>
+
+    <!-- MIS TAREAS -->
+    <div id="v-mis-tareas" class="vista">
+        <div class="page-header"><div class="page-titulo">Mis Tareas</div><div class="page-subtitulo">Tareas asignadas</div></div>
+        <div class="card">
+            <div class="card-header">Tareas asignadas <div class="btn-row"><button class="btn btn-primary btn-sm" onclick="cargarMisTareas()">Actualizar</button></div></div>
+            <div id="listaTareas"><div style="padding:24px;text-align:center">Cargando...</div></div>
+        </div>
+        <div class="card">
+            <div class="card-header">Cambiar estado</div>
+            <div class="card-body">
+                <div class="form-row"><div class="form-group"><label class="form-label">ID Tarea</label><input class="form-control" id="tareaEstadoId"></div><div class="form-group"><label class="form-label">Estado</label><select class="form-control" id="tareaEstadoNuevo"><option>EN_PROGRESO</option><option>EN_REVISION</option><option>COMPLETADA</option></select></div></div>
+                <button class="btn btn-primary" onclick="cambiarEstadoTarea()">Actualizar</button>
+                <div class="api-result" id="rTareaEstado"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROYECTOS -->
+    <div id="v-proyectos" class="vista">
+        <div class="page-header"><div class="page-titulo">Proyectos</div></div>
+        <div class="card">
+            <div class="card-header">Crear proyecto</div>
+            <div class="card-body">
+                <div class="form-row"><div class="form-group"><label class="form-label">Nombre</label><input class="form-control" id="pNombre"></div><div class="form-group"><label class="form-label">Metodología</label><select class="form-control" id="pMetodologia"><option>Scrum</option><option>Kanban</option></select></div></div>
+                <div class="form-row"><div class="form-group"><label class="form-label">Presupuesto</label><input class="form-control" id="pPresupuesto" type="number"></div><div class="form-group"><label class="form-label">Estado</label><select class="form-control" id="pEstado"><option>ACTIVO</option><option>EN_PAUSA</option></select></div></div>
+                <div class="btn-row"><button class="btn btn-primary" onclick="crearProyecto()">Crear</button><button class="btn btn-secondary" onclick="listarProyectosActivos()">Listar</button></div>
+                <div class="api-result" id="rProyecto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORIAS -->
+    <div id="v-historias" class="vista">
+        <div class="page-header"><div class="page-titulo">Historias de Usuario</div></div>
+        <div class="card">
+            <div class="card-header">Crear historia</div>
+            <div class="card-body">
+                <div class="form-row"><div class="form-group"><label class="form-label">Título</label><input class="form-control" id="hTitulo"></div><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="hIdProyecto"></div></div>
+                <div class="form-row"><div class="form-group"><label class="form-label">Prioridad</label><select class="form-control" id="hPrioridad"><option>MUST</option><option>SHOULD</option><option>COULD</option></select></div><div class="form-group"><label class="form-label">Puntos</label><input class="form-control" id="hPuntos" type="number"></div></div>
+                <button class="btn btn-primary" onclick="crearHistoria()">Crear</button>
+                <div class="api-result" id="rHistoria"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Aceptar/Rechazar</div>
+            <div class="card-body">
+                <div class="form-row"><div class="form-group"><label class="form-label">ID Historia</label><input class="form-control" id="hAccionId"></div></div>
+                <div class="btn-row"><button class="btn btn-success" onclick="aprobarHistoria()">Aprobar</button><button class="btn btn-danger" onclick="rechazarHistoria()">Rechazar</button></div>
+                <div class="api-result" id="rHistoriaAccion"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPRINTS -->
+    <div id="v-sprints" class="vista">
+        <div class="page-header"><div class="page-titulo">Sprints</div></div>
+        <div class="card">
+            <div class="card-header">Crear Sprint</div>
+            <div class="card-body">
+                <div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="sIdProyecto"></div>
+                <div class="form-row"><div class="form-group"><label class="form-label">Fecha Inicio</label><input class="form-control" id="sFechaInicio" type="date"></div><div class="form-group"><label class="form-label">Fecha Fin</label><input class="form-control" id="sFechaFin" type="date"></div></div>
+                <div class="form-group"><label class="form-label">Objetivo</label><input class="form-control" id="sObjetivo"></div>
+                <button class="btn btn-primary" onclick="crearSprint()">Crear</button>
+                <div class="api-result" id="rSprint"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEFECTOS -->
+    <div id="v-defectos" class="vista">
+        <div class="page-header"><div class="page-titulo">Defectos</div></div>
+        <div class="card">
+            <div class="card-header">Reportar defecto</div>
+            <div class="card-body">
+                <div class="form-row"><div class="form-group"><label class="form-label">Título</label><input class="form-control" id="dTitulo"></div><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="dIdProyecto"></div></div>
+                <div class="form-row"><div class="form-group"><label class="form-label">Severidad</label><select class="form-control" id="dSeveridad"><option>CRITICA</option><option>ALTA</option><option>MEDIA</option></select></div><div class="form-group"><label class="form-label">Ambiente</label><select class="form-control" id="dAmbiente"><option>dev</option><option>test</option><option>prod</option></select></div></div>
+                <button class="btn btn-danger" onclick="reportarDefecto()">Reportar</button>
+                <div class="api-result" id="rDefecto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIPELINES -->
+    <div id="v-pipelines" class="vista">
+        <div class="page-header"><div class="page-titulo">Pipelines CI/CD</div></div>
+        <div class="card">
+            <div class="card-header">Crear Pipeline</div>
+            <div class="card-body">
+                <div class="form-row"><div class="form-group"><label class="form-label">Nombre</label><input class="form-control" id="plNombre"></div><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="plIdProyecto"></div></div>
+                <button class="btn btn-primary" onclick="crearPipeline()">Crear</button>
+                <div class="api-result" id="rPipeline"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANALISTA DE NEGOCIO -->
+    <div id="v-analista" class="vista">
+        <div class="page-header"><div class="page-titulo">Analista de Negocio</div><div class="page-subtitulo">RF-AN-01 al 08</div></div>
+
+        <!-- Botones de Exportación -->
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:20px;">
+            <div class="stat-card" style="cursor:pointer; text-align:center;" onclick="exportarProyectosPDF()"><div class="stat-numero" style="font-size:24px;">📄</div><div class="stat-label">Proyectos PDF</div></div>
+            <div class="stat-card" style="cursor:pointer; text-align:center;" onclick="exportarGlosarioPDF()"><div class="stat-numero" style="font-size:24px;">📚</div><div class="stat-label">Glosario PDF</div></div>
+            <div class="stat-card" style="cursor:pointer; text-align:center;" onclick="exportarTrazabilidadPDF()"><div class="stat-numero" style="font-size:24px;">🔗</div><div class="stat-label">Trazabilidad PDF</div></div>
+            <div class="stat-card" style="cursor:pointer; text-align:center;" onclick="exportarCasosUsoWord()"><div class="stat-numero" style="font-size:24px;">📋</div><div class="stat-label">Casos Uso Word</div></div>
+        </div>
+
+        <!-- Submódulos -->
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:20px;">
+            <div class="stat-card" style="cursor:pointer" onclick="mostrarSubSeccionAnalista('entrevistas')"><div class="stat-numero" style="font-size:24px;">🎙️</div><div class="stat-label">Entrevistas</div></div>
+            <div class="stat-card" style="cursor:pointer" onclick="mostrarSubSeccionAnalista('srs')"><div class="stat-numero" style="font-size:24px;">📄</div><div class="stat-label">Documento SRS</div></div>
+            <div class="stat-card" style="cursor:pointer" onclick="mostrarSubSeccionAnalista('bpmn')"><div class="stat-numero" style="font-size:24px;">📊</div><div class="stat-label">Diagramas BPMN</div></div>
+            <div class="stat-card" style="cursor:pointer" onclick="mostrarSubSeccionAnalista('casos-uso')"><div class="stat-numero" style="font-size:24px;">📝</div><div class="stat-label">Casos de Uso</div></div>
+            <div class="stat-card" style="cursor:pointer" onclick="mostrarSubSeccionAnalista('trazabilidad')"><div class="stat-numero" style="font-size:24px;">🔗</div><div class="stat-label">Trazabilidad</div></div>
+            <div class="stat-card" style="cursor:pointer" onclick="mostrarSubSeccionAnalista('glosario')"><div class="stat-numero" style="font-size:24px;">📚</div><div class="stat-label">Glosario</div></div>
+            <div class="stat-card" style="cursor:pointer" onclick="mostrarSubSeccionAnalista('validacion')"><div class="stat-numero" style="font-size:24px;">✅</div><div class="stat-label">Validación</div></div>
+        </div>
+
+        <!-- Entrevistas -->
+        <div id="sub-entrevistas" class="subseccion-analista"><div class="card"><div class="card-header">🎙️ Entrevistas</div><div class="card-body"><div class="form-group"><label class="form-label">Título</label><input class="form-control" id="entrevistaTitulo"></div><div class="form-group"><label class="form-label">Participantes</label><input class="form-control" id="entrevistaParticipantes"></div><div class="form-group"><label class="form-label">Transcripción</label><textarea class="form-control" id="entrevistaTranscripcion" rows="3"></textarea></div><button class="btn btn-primary" onclick="registrarEntrevista()">Registrar</button><div class="api-result" id="rEntrevista"></div></div></div></div>
+
+        <!-- SRS -->
+        <div id="sub-srs" class="subseccion-analista"><div class="card"><div class="card-header">📄 Documento SRS</div><div class="card-body"><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="srsProyectoId"></div><button class="btn btn-primary" onclick="generarSRS()">Generar</button><div class="api-result" id="rSRS"></div></div></div></div>
+
+        <!-- BPMN -->
+        <div id="sub-bpmn" class="subseccion-analista"><div class="card"><div class="card-header">📊 Diagramas BPMN</div><div class="card-body"><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="bpmnProyectoId"></div><div class="form-group"><label class="form-label">XML</label><textarea class="form-control" id="bpmnContenido" rows="4"></textarea></div><button class="btn btn-primary" onclick="guardarDiagramaBPMN()">Guardar</button><div class="api-result" id="rBPMN"></div></div></div></div>
+
+        <!-- Casos de Uso -->
+        <div id="sub-casos-uso" class="subseccion-analista"><div class="card"><div class="card-header">📝 Casos de Uso</div><div class="card-body"><div class="form-row"><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="cuProyectoId"></div><div class="form-group"><label class="form-label">Actor</label><input class="form-control" id="cuActor"></div></div><div class="form-group"><label class="form-label">Nombre</label><input class="form-control" id="cuNombre"></div><div class="form-group"><label class="form-label">Flujo Básico</label><textarea class="form-control" id="cuFlujoBasico" rows="3"></textarea></div><div class="btn-row"><button class="btn btn-primary" onclick="crearCasoUso()">Crear</button><button class="btn btn-secondary" onclick="exportarCasosUsoWord()">Exportar Word</button></div><div class="api-result" id="rCasoUso"></div></div></div></div>
+
+        <!-- Trazabilidad -->
+        <div id="sub-trazabilidad" class="subseccion-analista"><div class="card"><div class="card-header">🔗 Matriz de Trazabilidad</div><div class="card-body"><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="trazabilidadProyectoId"></div><div class="btn-row"><button class="btn btn-primary" onclick="generarMatrizTrazabilidad()">Generar</button><button class="btn btn-secondary" onclick="exportarTrazabilidadPDF()">Exportar PDF</button></div><div class="api-result" id="rTrazabilidad"></div></div></div></div>
+
+        <!-- Glosario -->
+        <div id="sub-glosario" class="subseccion-analista"><div class="card"><div class="card-header">📚 Glosario</div><div class="card-body"><div class="form-row"><div class="form-group"><label class="form-label">ID Proyecto</label><input class="form-control" id="glosarioProyectoId"></div><div class="form-group"><label class="form-label">Término</label><input class="form-control" id="glosarioTermino"></div></div><div class="form-group"><label class="form-label">Definición</label><textarea class="form-control" id="glosarioDefinicion" rows="3"></textarea></div><div class="btn-row"><button class="btn btn-primary" onclick="agregarTerminoGlosario()">Agregar</button><button class="btn btn-secondary" onclick="exportarGlosarioPDF()">Exportar PDF</button></div><div class="api-result" id="rGlosario"></div></div></div></div>
+
+        <!-- Validación -->
+        <div id="sub-validacion" class="subseccion-analista"><div class="card"><div class="card-header">✅ Validación Cliente</div><div class="card-body"><div class="form-row"><div class="form-group"><label class="form-label">ID Requisito</label><input class="form-control" id="validarRequisitoId"></div><div class="form-group"><label class="form-label">ID Cliente</label><input class="form-control" id="validarClienteId"></div></div><div class="btn-row"><button class="btn btn-primary" onclick="enviarValidacion()">Enviar</button><button class="btn btn-success" onclick="aprobarValidacion()">Aprobar</button><button class="btn btn-danger" onclick="rechazarValidacion()">Rechazar</button></div><div class="api-result" id="rValidacion"></div></div></div></div>
+    </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+// UTILIDADES
+function toast(msg, tipo) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'show ' + (tipo || ''); setTimeout(() => t.className = '', 3000); }
+function mostrarResultado(elId, data, esError) { const el = document.getElementById(elId); el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2); el.className = 'api-result show'; el.style.borderColor = esError ? 'var(--rojo)' : 'var(--verde)'; }
+function mostrarVista(nombre, btn) { document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa')); document.getElementById('v-' + nombre).classList.add('activa'); document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('activo')); if (btn) btn.classList.add('activo'); if (nombre === 'mis-tareas') cargarMisTareas(); if (nombre === 'dashboard') cargarDashboard(); }
+function mostrarSubSeccionAnalista(seccion) { document.querySelectorAll('.subseccion-analista').forEach(el => el.style.display = 'none'); document.getElementById(`sub-${seccion}`).style.display = 'block'; }
+async function api(method, url, body) { const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' }; if (body) opts.body = JSON.stringify(body); const r = await fetch(url, opts); const data = await r.json().catch(() => ({})); return { ok: r.ok, data }; }
+
+// EXPORTACIONES
+function exportarProyectosPDF() { window.open('/api/exportar/proyectos/pdf', '_blank'); }
+function exportarGlosarioPDF() { const id = document.getElementById('glosarioProyectoId')?.value; if (!id) { toast('Ingrese ID de proyecto', 'error'); return; } window.open(`/api/exportar/glosario/pdf/${id}`, '_blank'); }
+function exportarTrazabilidadPDF() { const id = document.getElementById('trazabilidadProyectoId')?.value; if (!id) { toast('Ingrese ID de proyecto', 'error'); return; } window.open(`/api/exportar/trazabilidad/pdf/${id}`, '_blank'); }
+function exportarCasosUsoWord() { const id = document.getElementById('cuProyectoId')?.value; if (!id) { toast('Ingrese ID de proyecto', 'error'); return; } window.open(`/api/exportar/casos-uso/word/${id}`, '_blank'); }
+
+// DASHBOARD
+async function cargarDashboard() { const r = await api('GET', '/api/proyectos/estadisticas'); if (r.ok) document.getElementById('statProyectos').textContent = r.data.totalActivos || 0; const t = await api('GET', '/api/tareas/mis-tareas'); if (t.ok) document.getElementById('statTareas').textContent = t.data.length; }
+
+// TAREAS
+let tareasCache = [];
+async function cargarMisTareas() { const r = await api('GET', '/api/tareas/mis-tareas'); if (r.ok) { tareasCache = r.data; document.getElementById('listaTareas').innerHTML = r.data.map(t => `<div class="tarea-item"><span class="tarea-dot dot-naranja"></span><div class="tarea-info"><div class="tarea-titulo">${t.titulo}</div></div><span class="tarea-estado estado-progreso">${t.estado || 'PENDIENTE'}</span></div>`).join('') || '<div style="padding:24px">No hay tareas</div>'; } }
+async function cambiarEstadoTarea() { const id = document.getElementById('tareaEstadoId').value, estado = document.getElementById('tareaEstadoNuevo').value; if (!id) { toast('Ingrese ID', 'error'); return; } const r = await api('PATCH', `/api/tareas/${id}/estado`, { estado }); mostrarResultado('rTareaEstado', r.data, !r.ok); toast(r.ok ? 'Estado actualizado' : 'Error', r.ok ? 'exito' : 'error'); if (r.ok) cargarMisTareas(); }
+
+// PROYECTOS
+async function crearProyecto() { const nombre = document.getElementById('pNombre').value; if (!nombre) { toast('Nombre obligatorio', 'error'); return; } const body = { nombre, metodologia: document.getElementById('pMetodologia').value, presupuesto: parseFloat(document.getElementById('pPresupuesto').value) || 0, estado: document.getElementById('pEstado').value }; const r = await api('POST', '/api/proyectos', body); mostrarResultado('rProyecto', r.data, !r.ok); toast(r.ok ? 'Proyecto creado' : 'Error', r.ok ? 'exito' : 'error'); }
+async function listarProyectosActivos() { const r = await api('GET', '/api/proyectos/activos'); mostrarResultado('rProyecto', r.data, !r.ok); }
+
+// HISTORIAS
+async function crearHistoria() { const r = await api('POST', '/api/historias', { titulo: document.getElementById('hTitulo').value, idProyecto: document.getElementById('hIdProyecto').value, prioridadMoscow: document.getElementById('hPrioridad').value, estimacionPuntos: parseInt(document.getElementById('hPuntos').value) || 0 }); mostrarResultado('rHistoria', r.data, !r.ok); toast(r.ok ? 'Historia creada' : 'Error', r.ok ? 'exito' : 'error'); }
+async function aprobarHistoria() { const id = document.getElementById('hAccionId').value; if (!id) { toast('Ingrese ID', 'error'); return; } const r = await api('PATCH', `/api/historias/${id}/aprobar`, {}); mostrarResultado('rHistoriaAccion', r.data, !r.ok); toast(r.ok ? 'Aprobada' : 'Error', r.ok ? 'exito' : 'error'); }
+async function rechazarHistoria() { const id = document.getElementById('hAccionId').value; if (!id) { toast('Ingrese ID', 'error'); return; } const r = await api('PATCH', `/api/historias/${id}/rechazar`, { observacion: 'Rechazado' }); mostrarResultado('rHistoriaAccion', r.data, !r.ok); toast(r.ok ? 'Rechazada' : 'Error', r.ok ? '' : 'error'); }
+
+// SPRINTS
+async function crearSprint() { const r = await api('POST', '/api/sprints', { idProyecto: document.getElementById('sIdProyecto').value, fechaInicio: document.getElementById('sFechaInicio').value, fechaFin: document.getElementById('sFechaFin').value, objetivo: document.getElementById('sObjetivo').value }); mostrarResultado('rSprint', r.data, !r.ok); toast(r.ok ? 'Sprint creado' : 'Error', r.ok ? 'exito' : 'error'); }
+
+// DEFECTOS
+async function reportarDefecto() { const r = await api('POST', '/api/defectos', { titulo: document.getElementById('dTitulo').value, idProyecto: document.getElementById('dIdProyecto').value, severidad: document.getElementById('dSeveridad').value, ambiente: document.getElementById('dAmbiente').value }); mostrarResultado('rDefecto', r.data, !r.ok); toast(r.ok ? 'Defecto reportado' : 'Error', r.ok ? 'exito' : 'error'); }
+
+// PIPELINES
+async function crearPipeline() { const r = await api('POST', '/api/pipelines', { nombre: document.getElementById('plNombre').value, idProyecto: document.getElementById('plIdProyecto').value }); mostrarResultado('rPipeline', r.data, !r.ok); toast(r.ok ? 'Pipeline creado' : 'Error', r.ok ? 'exito' : 'error'); }
+
+// ANALISTA
+async function registrarEntrevista() { const r = await api('POST', '/api/analista/entrevistas', { titulo: document.getElementById('entrevistaTitulo').value, participantes: document.getElementById('entrevistaParticipantes').value.split(','), transcripcion: document.getElementById('entrevistaTranscripcion').value }); mostrarResultado('rEntrevista', r.data, !r.ok); toast(r.ok ? 'Entrevista registrada' : 'Error', r.ok ? 'exito' : 'error'); }
+async function generarSRS() { const id = document.getElementById('srsProyectoId').value; if (!id) { toast('ID proyecto requerido', 'error'); return; } const r = await api('GET', `/api/analista/srs/${id}`); mostrarResultado('rSRS', r.data, !r.ok); }
+async function guardarDiagramaBPMN() { const r = await api('POST', '/api/analista/bpmn', { proyectoId: document.getElementById('bpmnProyectoId').value, contenido: document.getElementById('bpmnContenido').value }); mostrarResultado('rBPMN', r.data, !r.ok); toast(r.ok ? 'Diagrama guardado' : 'Error', r.ok ? 'exito' : 'error'); }
+async function crearCasoUso() { const r = await api('POST', '/api/analista/casos-uso', { proyectoId: document.getElementById('cuProyectoId').value, nombre: document.getElementById('cuNombre').value, actor: document.getElementById('cuActor').value, flujoBasico: document.getElementById('cuFlujoBasico').value }); mostrarResultado('rCasoUso', r.data, !r.ok); toast(r.ok ? 'Caso de uso creado' : 'Error', r.ok ? 'exito' : 'error'); }
+async function generarMatrizTrazabilidad() { const id = document.getElementById('trazabilidadProyectoId').value; if (!id) { toast('ID proyecto requerido', 'error'); return; } const r = await api('GET', `/api/analista/trazabilidad/${id}`); mostrarResultado('rTrazabilidad', r.data, !r.ok); }
+async function agregarTerminoGlosario() { const r = await api('POST', '/api/analista/glosario', { proyectoId: document.getElementById('glosarioProyectoId').value, termino: document.getElementById('glosarioTermino').value, definicion: document.getElementById('glosarioDefinicion').value }); mostrarResultado('rGlosario', r.data, !r.ok); toast(r.ok ? 'Término agregado' : 'Error', r.ok ? 'exito' : 'error'); }
+async function enviarValidacion() { const r = await api('POST', '/api/analista/validacion/enviar', { requisitoId: document.getElementById('validarRequisitoId').value, clienteId: document.getElementById('validarClienteId').value }); mostrarResultado('rValidacion', r.data, !r.ok); }
+async function aprobarValidacion() { const id = document.getElementById('validarRequisitoId').value; if (!id) { toast('ID requisito requerido', 'error'); return; } const r = await api('PATCH', `/api/analista/validacion/${id}/aprobar`); mostrarResultado('rValidacion', r.data, !r.ok); toast(r.ok ? 'Aprobado con firma' : 'Error', r.ok ? 'exito' : 'error'); }
+async function rechazarValidacion() { const id = document.getElementById('validarRequisitoId').value; if (!id) { toast('ID requisito requerido', 'error'); return; } const r = await api('PATCH', `/api/analista/validacion/${id}/rechazar`, { observacion: 'Rechazado' }); mostrarResultado('rValidacion', r.data, !r.ok); }
+
+// INIT
+document.addEventListener('DOMContentLoaded', () => { cargarDashboard(); const correo = document.getElementById('perfilCorreo')?.textContent || ''; if (correo) { document.getElementById('avatarLetra').textContent = correo[0].toUpperCase(); document.getElementById('perfilNombre').textContent = correo.split('@')[0]; } });
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuarios - SIGPROD Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Gabarito', sans-serif; background: #f5f5f5; }
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { font-size: 24px; font-weight: 900; color: #C0392B; }
+        .logout-btn { background: #C0392B; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; }
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            width: 260px;
+            height: calc(100vh - 64px);
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+        .menu-item { display: block; padding: 12px 24px; color: #555; text-decoration: none; }
+        .menu-item:hover, .menu-item.active { background: #f8e8e6; color: #C0392B; }
+        .main-content { margin-left: 260px; margin-top: 64px; padding: 24px; }
+        .card { background: white; border-radius: 16px; padding: 24px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e0e0e0; padding-bottom: 12px; }
+        .btn-primary { background: #C0392B; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background: #f8f8f8; }
+        .badge-active { background: #2ecc71; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-inactive { background: #e74c3c; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .action-link { color: #C0392B; text-decoration: none; margin-right: 12px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">SIGPROD</div>
+        <div class="user-info">
+            <span th:text="${#authentication.name}">Usuario</span>
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+    <div class="sidebar">
+        <a href="/admin/dashboard" class="menu-item">📊 Dashboard</a>
+        <a href="/admin/usuarios" class="menu-item active">👥 Usuarios</a>
+        <a href="/admin/roles" class="menu-item">🔐 Roles</a>
+        <a href="/admin/permisos" class="menu-item">📋 Permisos</a>
+       
+    </div>
+    <div class="main-content">
+        <div class="card">
+            <div class="card-header">
+                <h3>👥 Gestión de Usuarios</h3>
+                <a href="/admin/usuarios/nuevo" class="btn-primary">+ Nuevo Usuario</a>
+            </div>
+            <a href="/admin/dashboard" class="action-link">← Volver al Dashboard</a>
+            <table style="margin-top: 16px;">
+                <thead>
+                    <tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user : ${usuarios}">
+                        <td th:text="${user.nombres} + ' ' + ${user.apellidos}">--</td>
+                        <td th:text="${user.correo}">--</td>
+                        <td th:text="${user.rolNombre != null ? user.rolNombre : 'Sin rol'}">--</td>
+                        <td><span th:if="${user.estado == 'ACTIVO'}" class="badge-active">Activo</span><span th:unless="${user.estado == 'ACTIVO'}" class="badge-inactive">Inactivo</span></td>
+                        <td><a th:href="|/admin/usuarios/${user.id}/editar|" class="action-link">Editar</a><a th:href="|/admin/usuarios/${user.id}/eliminar|" class="action-link" onclick="return confirm('¿Eliminar?')">Eliminar</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
