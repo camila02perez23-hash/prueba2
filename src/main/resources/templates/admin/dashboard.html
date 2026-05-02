@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - SIGPROD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Gabarito', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: #C0392B;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .logout-btn {
+            background: #C0392B;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #E74C3C;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            width: 260px;
+            height: calc(100vh - 64px);
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: #555;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            gap: 12px;
+        }
+
+        .menu-item:hover {
+            background: #f8e8e6;
+            color: #C0392B;
+        }
+
+        .menu-item.active {
+            background: #f8e8e6;
+            color: #C0392B;
+            border-left: 3px solid #C0392B;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            margin-top: 64px;
+            padding: 24px;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* Tarjetas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #C0392B;
+        }
+
+        /* Tablas */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .btn-primary {
+            background: #C0392B;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: #E74C3C;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f8f8;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .badge-active {
+            background: #2ecc71;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .badge-inactive {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .action-link {
+            color: #C0392B;
+            text-decoration: none;
+            margin-right: 12px;
+        }
+
+        .action-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">SIGPROD</div>
+            <div class="user-info">
+                <span class="user-name" th:text="${#authentication.name}">Usuario</span>
+                <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-menu">
+            <a href="/admin/dashboard" class="menu-item active">
+                📊 Dashboard
+            </a>
+            <a href="/admin/usuarios" class="menu-item">
+                👥 Usuarios
+            </a>
+            <a href="/admin/roles" class="menu-item">
+                🔐 Roles
+            </a>
+            <a href="/admin/permisos" class="menu-item">
+                📋 Permisos
+           
+           
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Usuarios</div>
+                <div class="stat-value" th:text="${totalUsuarios}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Usuarios Activos</div>
+                <div class="stat-value" th:text="${usuariosActivos}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Roles del Sistema</div>
+                <div class="stat-value" th:text="${totalRoles}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Permisos</div>
+                <div class="stat-value" th:text="${totalPermisos}">0</div>
+            </div>
+        </div>
+
+        <!-- Usuarios Recientes -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">👥 Usuarios Recientes</h3>
+                <a href="/admin/usuarios/nuevo" class="btn-primary">+ Nuevo Usuario</a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="usuario : ${usuarios}">
+                        <td th:text="${usuario.nombres} + ' ' + ${usuario.apellidos}">--</td>
+                        <td th:text="${usuario.correo}">--</td>
+                        <td th:text="${usuario.rolNombre != null ? usuario.rolNombre : 'Sin Rol'}">--</td>
+                        <td>
+                            <span th:if="${usuario.estado == 'ACTIVO'}" class="badge-active">Activo</span>
+                            <span th:unless="${usuario.estado == 'ACTIVO'}" class="badge-inactive">Inactivo</span>
+                        </td>
+                        <td>
+                            <a th:href="|/admin/usuarios/${usuario.id}/editar|" class="action-link">Editar</a>
+                            <a th:href="|/admin/usuarios/${usuario.id}/eliminar|" class="action-link" onclick="return confirm('¿Eliminar este usuario?')">Eliminar</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

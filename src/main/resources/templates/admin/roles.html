@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Roles - SIGPROD Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Gabarito', sans-serif; background: #f5f5f5; }
+        .header { background: white; border-bottom: 1px solid #e0e0e0; padding: 0 24px; position: fixed; top: 0; left: 0; right: 0; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 24px; font-weight: 900; color: #C0392B; }
+        .logout-btn { background: #C0392B; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; }
+        .sidebar { position: fixed; top: 60px; left: 0; width: 250px; height: calc(100vh - 60px); background: white; border-right: 1px solid #e0e0e0; padding: 20px 0; }
+        .menu-item { display: block; padding: 12px 24px; color: #555; text-decoration: none; }
+        .menu-item:hover, .menu-item.active { background: #f8e8e6; color: #C0392B; border-left: 3px solid #C0392B; }
+        .main { margin-left: 250px; margin-top: 60px; padding: 24px; }
+        .card { background: white; border-radius: 12px; padding: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e0e0e0; padding-bottom: 10px; }
+        .btn { background: #C0392B; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background: #f8f8f8; }
+        .action-link { color: #C0392B; text-decoration: none; margin-right: 10px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">SIGPROD</div>
+        <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+    </div>
+    <div class="sidebar">
+        <a href="/admin/dashboard" class="menu-item">📊 Dashboard</a>
+        <a href="/admin/usuarios" class="menu-item">👥 Usuarios</a>
+        <a href="/admin/roles" class="menu-item active">🔐 Roles</a>
+        <a href="/admin/permisos" class="menu-item">📋 Permisos</a>
+       
+    </div>
+    <div class="main">
+        <div class="card">
+            <div class="card-header">
+                <h3>🔐 Gestión de Roles</h3>
+				
+                <a href="/admin/roles/nuevo" class="btn">+ Nuevo Rol</a>
+				</div>
+				          <a href="/admin/dashboard" class="action-link">← Volver al Dashboard</a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Nivel</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r : ${roles}">
+                        <td th:text="${r.nombre}">--</td>
+                        <td th:text="${r.descripcion}">--</td>
+                        <td th:text="${r.nivelAcceso}">--</td>
+                        <td>
+                            <a th:href="@{/admin/roles/editar/{id}(id=${r.id})}" class="action-link">Editar</a>
+                            <a th:href="@{/admin/roles/eliminar/{id}(id=${r.id})}" class="action-link" onclick="return confirm('¿Eliminar este rol?')">Eliminar</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${roles.isEmpty()}">
+                        <td colspan="4" style="text-align:center">No hay roles registrados</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
